@@ -24,6 +24,15 @@ class SyncController(
         val userDetails = SecurityContextHolder.getContext().authentication!!.principal as UserDetails
         val user = userRepository.findByUsername(userDetails.username).orElseThrow()
 
+        // Update User preferences
+        backupData.preferences?.let { prefs ->
+            user.height = prefs.height
+            user.weight = prefs.weight
+            user.age = prefs.age
+            user.defaultColor = prefs.defaultColor
+            userRepository.save(user)
+        }
+
         // Sync Workouts and Sets
         for (workoutDto in backupData.workouts) {
             var workout = workoutRepository.findByUserAndLocalId(user, workoutDto.id)
@@ -108,6 +117,10 @@ class SyncController(
         val rankMap = muscleRanks.associate { it.muscleId to it.rankName }
 
         val preferences = UserPreferencesBackupDto(
+            height = user.height ?: 0.0,
+            weight = user.weight ?: 0.0,
+            age = user.age ?: 0,
+            defaultColor = user.defaultColor,
             lastSeenMuscleRanks = rankMap
             // Other preference fields will be default, Android should handle merging
         )

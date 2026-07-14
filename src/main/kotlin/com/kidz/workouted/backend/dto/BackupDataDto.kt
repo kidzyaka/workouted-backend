@@ -26,5 +26,6 @@ data class UserPreferencesBackupDto(
     val age: Int = 0,
     val language: String = "",
     val isOnboardingCompleted: Boolean = false,
+    val defaultColor: String? = null,
     val lastSeenMuscleRanks: Map<String, String> = emptyMap()
 )
