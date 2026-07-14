@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface FriendshipRepository : JpaRepository<Friendship, Long> {
     fun findByRequesterAndAddressee(requester: User, addressee: User): Friendship?
     fun findByAddresseeAndStatus(addressee: User, status: FriendshipStatus): List<Friendship>
+    fun findByRequesterOrAddressee(requester: User, addressee: User): List<Friendship>
     
     // Find all accepted friendships for a user
     fun findByRequesterAndStatusOrAddresseeAndStatus(

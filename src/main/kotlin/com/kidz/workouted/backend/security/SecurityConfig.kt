@@ -24,6 +24,9 @@ class SecurityConfig(
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("/api/auth/**").permitAll()
+                auth.requestMatchers("/api/admin/login").permitAll()
+                auth.requestMatchers("/api/admin/**").hasAuthority("ROLE_ADMIN")
+                auth.requestMatchers("/admin/**", "/admin").permitAll()
                 auth.anyRequest().authenticated()
             }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }

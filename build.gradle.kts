@@ -4,6 +4,7 @@ plugins {
 	id("org.springframework.boot") version "4.1.0"
 	id("io.spring.dependency-management") version "1.1.7"
 	kotlin("plugin.jpa") version "2.3.21"
+	id("com.github.node-gradle.node") version "7.0.1"
 }
 
 group = "com.kidz"
@@ -50,4 +51,28 @@ allOpen {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+node {
+	version = "22.2.0"
+	download = true
+	nodeProjectDir = file("${project.projectDir}/admin-panel")
+}
+
+val buildAdminPanel = tasks.register<com.github.gradle.node.npm.task.NpmTask>("buildAdminPanel") {
+	dependsOn("npmInstall")
+	args.set(listOf("run", "build"))
+	inputs.dir("${project.projectDir}/admin-panel/src")
+	inputs.file("${project.projectDir}/admin-panel/package.json")
+	outputs.dir("${project.projectDir}/admin-panel/dist")
+}
+
+val copyAdminPanelToStatic = tasks.register<Copy>("copyAdminPanelToStatic") {
+	dependsOn(buildAdminPanel)
+	from("${project.projectDir}/admin-panel/dist")
+	into("${project.layout.buildDirectory.get().asFile}/resources/main/static/admin")
+}
+
+tasks.named("processResources") {
+	dependsOn(copyAdminPanelToStatic)
 }
