@@ -22,7 +22,7 @@ class SyncController(
     @Transactional
     fun pushBackup(@RequestBody backupData: BackupDataDto): ResponseEntity<Any> {
         val userDetails = SecurityContextHolder.getContext().authentication!!.principal as UserDetails
-        val user = userRepository.findByUsername(userDetails.username).orElseThrow()
+        val user = userRepository.findFirstByUsernameIgnoreCase(userDetails.username).orElseThrow()
 
         // Update User preferences
         backupData.preferences?.let { prefs ->
@@ -102,7 +102,7 @@ class SyncController(
     @GetMapping("/backup")
     fun pullBackup(): ResponseEntity<BackupDataDto> {
         val userDetails = SecurityContextHolder.getContext().authentication!!.principal as UserDetails
-        val user = userRepository.findByUsername(userDetails.username).orElseThrow()
+        val user = userRepository.findFirstByUsernameIgnoreCase(userDetails.username).orElseThrow()
 
         val workouts = workoutRepository.findByUser(user)
         val workoutDtos = workouts.map { w -> WorkoutDto(w.localId, w.timestamp, w.notes) }

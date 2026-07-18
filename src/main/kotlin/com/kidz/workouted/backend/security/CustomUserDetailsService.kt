@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service
 @Service
 class CustomUserDetailsService(private val userRepository: UserRepository) : UserDetailsService {
     override fun loadUserByUsername(username: String): UserDetails {
-        val user = userRepository.findByUsername(username)
-            .orElseThrow { UsernameNotFoundException("User Not Found with username: $username") }
+        val user = userRepository.findFirstByUsernameIgnoreCase(username)
+            .orElseThrow { UsernameNotFoundException("User not found: $username") }
 
         return User(user.username, user.passwordHash, emptyList())
     }

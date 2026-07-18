@@ -119,7 +119,7 @@ def main():
 
     users_data = [
         {
-            "username": f"demo_arni_{random.randint(1000,9999)}",
+            "username": "demo_arni_5594",
             "password": "password",
             "workouts": arni_w,
             "sets": arni_s,
@@ -130,15 +130,17 @@ def main():
                 "language": "en",
                 "isOnboardingCompleted": True,
                 "lastSeenMuscleRanks": {
-                    "m_chest_mid": "ELITE",
-                    "m_legs": "PRO",
-                    "m_back_upper": "GOLD",
-                    "m_arms_biceps": "ELITE"
+                    "group_chest": "ELITE",
+                    "group_back": "DIAMOND",
+                    "group_legs": "PLATINUM",
+                    "group_arms": "ELITE",
+                    "group_shoulders": "GOLD",
+                    "group_core": "SILVER"
                 }
             }
         },
         {
-            "username": f"demo_ronnie_{random.randint(1000,9999)}",
+            "username": "demo_ronnie_2650",
             "password": "password",
             "workouts": ronnie_w,
             "sets": ronnie_s,
@@ -149,15 +151,17 @@ def main():
                 "language": "en",
                 "isOnboardingCompleted": True,
                 "lastSeenMuscleRanks": {
-                    "m_chest_mid": "ELITE",
-                    "m_legs": "ELITE",
-                    "m_back_lower": "ELITE",
-                    "m_arms_triceps": "PRO"
+                    "group_chest": "ELITE",
+                    "group_back": "ELITE",
+                    "group_legs": "ELITE",
+                    "group_arms": "DIAMOND",
+                    "group_shoulders": "ELITE",
+                    "group_core": "PLATINUM"
                 }
             }
         },
         {
-            "username": f"demo_jay_{random.randint(1000,9999)}",
+            "username": "demo_jay_6109",
             "password": "password",
             "workouts": jay_w,
             "sets": jay_s,
@@ -168,10 +172,12 @@ def main():
                 "language": "en",
                 "isOnboardingCompleted": True,
                 "lastSeenMuscleRanks": {
-                    "m_chest_mid": "PRO",
-                    "m_legs": "GOLD",
-                    "m_shoulders": "ELITE",
-                    "m_core": "SILVER"
+                    "group_chest": "PLATINUM",
+                    "group_back": "GOLD",
+                    "group_legs": "GOLD",
+                    "group_arms": "SILVER",
+                    "group_shoulders": "ELITE",
+                    "group_core": "BRONZE"
                 }
             }
         }

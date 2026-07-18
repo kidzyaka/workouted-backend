@@ -21,7 +21,8 @@ class AuthController(
 
     @PostMapping("/register")
     fun register(@RequestBody request: AuthRequest): ResponseEntity<Any> {
-        if (userRepository.findByUsername(request.username).isPresent) {
+        val cleanUsername = request.username.trim().lowercase()
+        if (userRepository.findFirstByUsernameIgnoreCase(cleanUsername).isPresent) {
             return ResponseEntity.badRequest().body(mapOf("error" to "Username already taken"))
         }
 
@@ -36,7 +37,7 @@ class AuthController(
         }
 
         val user = User(
-            username = request.username,
+            username = cleanUsername,
             passwordHash = passwordEncoder.encode(request.password)!!,
             friendCode = friendCode
         )
@@ -48,7 +49,8 @@ class AuthController(
 
     @PostMapping("/login")
     fun login(@RequestBody request: AuthRequest): ResponseEntity<Any> {
-        val user = userRepository.findByUsername(request.username).orElse(null)
+        val cleanUsername = request.username.trim().lowercase()
+        val user = userRepository.findFirstByUsernameIgnoreCase(cleanUsername).orElse(null)
         
         if (user == null || !passwordEncoder.matches(request.password, user.passwordHash)) {
             return ResponseEntity.badRequest().body(mapOf("error" to "Invalid credentials"))

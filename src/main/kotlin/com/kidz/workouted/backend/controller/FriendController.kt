@@ -20,7 +20,7 @@ class FriendController(
 
     private fun getCurrentUser(): User {
         val userDetails = SecurityContextHolder.getContext().authentication!!.principal as UserDetails
-        return userRepository.findByUsername(userDetails.username).orElseThrow()
+        return userRepository.findFirstByUsernameIgnoreCase(userDetails.username).orElseThrow()
     }
 
     @PostMapping("/request")
@@ -60,6 +60,36 @@ class FriendController(
         friendshipRepository.save(friendship)
 
         return ResponseEntity.ok(mapOf("status" to "Request accepted"))
+    }
+
+    @PostMapping("/reject")
+    fun rejectRequest(@RequestParam friendshipId: Long): ResponseEntity<Any> {
+        val user = getCurrentUser()
+        val friendship = friendshipRepository.findById(friendshipId).orElse(null)
+            ?: return ResponseEntity.badRequest().body(mapOf("error" to "Friendship request not found"))
+
+        if (friendship.addressee.id != user.id) {
+            return ResponseEntity.badRequest().body(mapOf("error" to "Unauthorized to reject this request"))
+        }
+
+        friendshipRepository.delete(friendship)
+
+        return ResponseEntity.ok(mapOf("status" to "Request rejected"))
+    }
+
+    @PostMapping("/remove")
+    fun removeFriend(@RequestParam friendId: Long): ResponseEntity<Any> {
+        val user = getCurrentUser()
+        val friend = userRepository.findById(friendId).orElse(null)
+            ?: return ResponseEntity.badRequest().body(mapOf("error" to "Friend not found"))
+        
+        val friendship = friendshipRepository.findByRequesterAndAddressee(user, friend)
+            ?: friendshipRepository.findByRequesterAndAddressee(friend, user)
+            ?: return ResponseEntity.badRequest().body(mapOf("error" to "Friendship not found"))
+            
+        friendshipRepository.delete(friendship)
+
+        return ResponseEntity.ok(mapOf("status" to "Friend removed"))
     }
 
     @GetMapping("/requests")
