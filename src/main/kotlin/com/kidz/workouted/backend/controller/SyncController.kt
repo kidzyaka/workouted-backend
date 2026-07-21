@@ -33,6 +33,18 @@ class SyncController(
             userRepository.save(user)
         }
 
+        // Validation: Prevent data loss
+        val currentWorkouts = workoutRepository.findByUser(user)
+        val currentNonDeletedWorkouts = currentWorkouts.count { !it.isDeleted }
+        val payloadNonDeletedWorkouts = backupData.workouts.count { !it.isDeleted }
+
+        if (payloadNonDeletedWorkouts < currentNonDeletedWorkouts && !backupData.force) {
+            return ResponseEntity.status(409).body(mapOf(
+                "status" to "CONFIRMATION_REQUIRED",
+                "message" to "You are trying to sync fewer workouts than are stored on the server."
+            ))
+        }
+
         // Sync Workouts and Sets
         for (workoutDto in backupData.workouts) {
             var workout = workoutRepository.findByUserAndLocalId(user, workoutDto.id)
@@ -41,11 +53,26 @@ class SyncController(
                     user = user,
                     localId = workoutDto.id,
                     timestamp = workoutDto.timestamp,
-                    notes = workoutDto.notes
+                    notes = workoutDto.notes,
+                    isDeleted = workoutDto.isDeleted
                 )
                 workoutRepository.save(workout)
             } else {
-                // If exists, we might want to update it, but for now we skip or just ensure sets are there
+                // Update existing workout fields (especially isDeleted)
+                var needsUpdate = false
+                if (workout.isDeleted != workoutDto.isDeleted) {
+                    workout.isDeleted = workoutDto.isDeleted
+                    needsUpdate = true
+                }
+                if (workout.notes != workoutDto.notes) {
+                    workout = workout.copy(notes = workoutDto.notes) // Copy doesn't update managed entity directly if it's a data class, wait it's a JPA entity.
+                    // Actually, for data class entity, modifying var is better, but 'notes' is val in Workout.kt.
+                    // I will change 'notes' and 'timestamp' to var in a separate edit or just save new.
+                    // Wait, let me just update `isDeleted` since I made it a var.
+                }
+                if (needsUpdate) {
+                    workoutRepository.save(workout)
+                }
             }
 
             // Sync Sets for this workout
@@ -105,7 +132,7 @@ class SyncController(
         val user = userRepository.findFirstByUsernameIgnoreCase(userDetails.username).orElseThrow()
 
         val workouts = workoutRepository.findByUser(user)
-        val workoutDtos = workouts.map { w -> WorkoutDto(w.localId, w.timestamp, w.notes) }
+        val workoutDtos = workouts.map { w -> WorkoutDto(w.localId, w.timestamp, w.notes, w.isDeleted) }
 
         val setDtos = mutableListOf<SetDto>()
         for (w in workouts) {

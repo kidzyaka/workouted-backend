@@ -28,5 +28,8 @@ data class Workout(
     var sets: MutableList<WorkoutSet> = mutableListOf(),
 
     @Column(name = "created_at")
-    val createdAt: LocalDateTime = LocalDateTime.now()
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "is_deleted", nullable = false)
+    var isDeleted: Boolean = false
 )
