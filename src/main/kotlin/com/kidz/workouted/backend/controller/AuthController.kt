@@ -1,9 +1,14 @@
 package com.kidz.workouted.backend.controller
 
 import com.kidz.workouted.backend.model.User
+import com.kidz.workouted.backend.repository.FriendshipRepository
+import com.kidz.workouted.backend.repository.UserMuscleRankRepository
 import com.kidz.workouted.backend.repository.UserRepository
+import com.kidz.workouted.backend.repository.WorkoutRepository
 import com.kidz.workouted.backend.security.JwtUtil
+import jakarta.transaction.Transactional
 import org.springframework.http.ResponseEntity
+import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -12,6 +17,9 @@ import java.util.UUID
 @RequestMapping("/api/auth")
 class AuthController(
     private val userRepository: UserRepository,
+    private val friendshipRepository: FriendshipRepository,
+    private val workoutRepository: WorkoutRepository,
+    private val userMuscleRankRepository: UserMuscleRankRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtUtil: JwtUtil
 ) {
@@ -58,5 +66,31 @@ class AuthController(
 
         val token = jwtUtil.generateToken(user.username)
         return ResponseEntity.ok(AuthResponse(token, user.friendCode))
+    }
+
+    @DeleteMapping("/account")
+    @Transactional
+    fun deleteAccount(): ResponseEntity<Any> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val currentUsername = authentication?.name
+            ?: return ResponseEntity.badRequest().body(mapOf("error" to "Not authenticated"))
+        
+        val user = userRepository.findFirstByUsernameIgnoreCase(currentUsername).orElse(null)
+            ?: return ResponseEntity.badRequest().body(mapOf("error" to "User not found"))
+
+        // Delete associated records
+        val friendships = friendshipRepository.findByRequesterOrAddressee(user, user)
+        friendshipRepository.deleteAll(friendships)
+        
+        val workouts = workoutRepository.findByUser(user)
+        workoutRepository.deleteAll(workouts)
+        
+        val muscleRanks = userMuscleRankRepository.findByUser(user)
+        userMuscleRankRepository.deleteAll(muscleRanks)
+        
+        // Delete user
+        userRepository.delete(user)
+        
+        return ResponseEntity.ok(mapOf("message" to "Account deleted successfully"))
     }
 }

@@ -30,6 +30,6 @@ data class Workout(
     @Column(name = "created_at")
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
-    @Column(name = "is_deleted", nullable = false)
+    @Column(name = "is_deleted", nullable = false, columnDefinition = "boolean default false")
     var isDeleted: Boolean = false
 )
